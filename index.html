@@ -21,8 +21,21 @@
             color: #2c3e50;
             text-align: center;
         }
+        .poem-meta {
+            text-align: center;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        .poem-title {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .poem-author {
+            font-size: 1em;
+            color: #888;
+        }
         .spokenword-text {
-            margin-top: 24px;
+            margin-top: 16px;
             white-space: pre-line;
             font-size: 1.1em;
             color: #444;
@@ -44,7 +57,9 @@
         .read-aloud-btn,
         .pause-btn,
         .resume-btn,
-        .stop-btn {
+        .stop-btn,
+        .favorite-btn,
+        .share-btn {
             padding: 8px 18px;
             font-size: 1em;
             border: none;
@@ -57,18 +72,97 @@
         .read-aloud-btn:hover,
         .pause-btn:hover,
         .resume-btn:hover,
-        .stop-btn:hover {
+        .stop-btn:hover,
+        .favorite-btn:hover,
+        .share-btn:hover {
             background: #34495e;
+        }
+        .poem-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 12px 0;
+        }
+        .favorite-btn.favorited {
+            background: #e67e22;
         }
         audio {
             display: block;
             margin: 30px auto 0 auto;
         }
+        .select-poem {
+            display: block;
+            margin: 0 auto 10px auto;
+            font-size: 1em;
+            padding: 6px;
+            border-radius: 5px;
+            border: 1px solid #bbb;
+            background: #f2f2f2;
+        }
+        .write-poem-form {
+            margin: 32px auto 0 auto;
+            background: #f8f8f8;
+            padding: 18px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            max-width: 550px;
+        }
+        .write-poem-form h2 {
+            margin-top: 0;
+            font-size: 1.1em;
+            text-align: center;
+            color: #2c3e50;
+        }
+        .write-poem-form label {
+            display: block;
+            margin: 8px 0 2px 0;
+            font-weight: bold;
+        }
+        .write-poem-form input,
+        .write-poem-form textarea {
+            width: 100%;
+            font-size: 1em;
+            padding: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .write-poem-form button {
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .write-poem-form button:hover {
+            background: #219150;
+        }
+        .user-badge {
+            display: inline-block;
+            background: #e0f8e0;
+            color: #27ae60;
+            font-size: 0.95em;
+            padding: 1px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
     </style>
 </head>
 <body>
     <div class="spokenword-container">
-        <h1>Spoken Word Piece</h1>
+        <h1>Spoken Word Pieces</h1>
+        <select id="poemSelect" class="select-poem"></select>
+        <div class="poem-meta">
+            <div class="poem-title" id="poemTitle"></div>
+            <div class="poem-author" id="poemAuthor"></div>
+        </div>
+        <div class="poem-controls">
+            <button class="favorite-btn" id="favoriteBtn">⭐ Favorite</button>
+            <button class="share-btn" id="shareBtn">📤 Share</button>
+        </div>
         <div class="tts-controls">
             <button class="read-aloud-btn" onclick="readText()">🔊 Read Aloud</button>
             <button class="pause-btn" onclick="pauseSpeech()">⏸️ Pause</button>
@@ -83,27 +177,173 @@
             <input type="range" id="pitchRange" min="0" max="2" value="1" step="0.1">
             <span id="pitchValue">1</span>
         </div>
-        <div class="spokenword-text" id="spokenwordText">
-            I speak my truth in echoes and in fire,<br>
-            Each word a ripple, chasing something higher.<br>
-            My voice, unchained, dances in the light,<br>
-            Stories set free, taking their flight.<br><br>
-
-            This is my spoken word, my moment to be heard.<br>
-            Let syllables spark, let meaning be stirred.<br>
-            In the silence, my verses unfold,<br>
-            The world is my canvas, my language is bold.
-        </div>
-        <!-- Optional: Add your own audio file -->
-        <!-- <audio controls>
-            <source src="yourpiece.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio> -->
+        <div class="spokenword-text" id="spokenwordText"></div>
     </div>
+    <form class="write-poem-form" id="writePoemForm" autocomplete="off">
+        <h2>Write Your Own Poem</h2>
+        <label for="userPoemTitle">Title</label>
+        <input type="text" id="userPoemTitle" required maxlength="60">
+
+        <label for="userPoemAuthor">Author</label>
+        <input type="text" id="userPoemAuthor" maxlength="30" placeholder="Your name (optional)">
+
+        <label for="userPoemText">Poem</label>
+        <textarea id="userPoemText" rows="6" required maxlength="1000"></textarea>
+
+        <button type="submit">Save Poem</button>
+    </form>
     <script>
+        // Built-in poems data
+        const builtInPoems = [
+            {
+                title: "Echoes and Fire",
+                author: "Anonymous",
+                text: `I speak my truth in echoes and in fire,
+Each word a ripple, chasing something higher.
+My voice, unchained, dances in the light,
+Stories set free, taking their flight.
+
+This is my spoken word, my moment to be heard.
+Let syllables spark, let meaning be stirred.
+In the silence, my verses unfold,
+The world is my canvas, my language is bold.`,
+                isUser: false
+            },
+            {
+                title: "Dawn's Embrace",
+                author: "Jane Doe",
+                text: `Morning breaks with a gentle sigh,
+Colors spill across the sky.
+Hope awakens, dreams take flight,
+Bathed anew in golden light.`,
+                isUser: false
+            },
+            {
+                title: "Night Whispers",
+                author: "John Smith",
+                text: `Beneath the veil of silent night,
+Softly fall the stars so bright.
+Whispers carried on the breeze,
+Sing the world into gentle ease.`,
+                isUser: false
+            }
+        ];
+
+        // --- User Poem Persistence ---
+        function getUserPoems() {
+            return JSON.parse(localStorage.getItem('userPoems') || '[]');
+        }
+        function saveUserPoems(poems) {
+            localStorage.setItem('userPoems', JSON.stringify(poems));
+        }
+        function addUserPoem(poem) {
+            const poems = getUserPoems();
+            poems.push(poem);
+            saveUserPoems(poems);
+        }
+
+        // --- Favorites Persistence ---
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem('favoritePoems') || '[]');
+        }
+        function setFavorites(favs) {
+            localStorage.setItem('favoritePoems', JSON.stringify(favs));
+        }
+        function isFavorited(idx) {
+            return getFavorites().includes(idx);
+        }
+
+        // --- Render Poem List ---
+        function getAllPoems() {
+            // Merges built-in poems and user poems, user poems always go last
+            const userPoems = getUserPoems().map(poem => ({
+                ...poem,
+                isUser: true
+            }));
+            return [...builtInPoems, ...userPoems];
+        }
+
+        const poemSelect = document.getElementById('poemSelect');
+
+        function populatePoemSelect(selectedIdx = 0) {
+            const poems = getAllPoems();
+            poemSelect.innerHTML = '';
+            poems.forEach((poem, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${poem.title} — ${poem.author || "Anonymous"}`;
+                if (poem.isUser) {
+                    option.textContent += " (You)";
+                }
+                poemSelect.appendChild(option);
+            });
+            poemSelect.value = selectedIdx;
+        }
+
+        // --- Display Poem ---
+        function displayPoem(idx) {
+            const poems = getAllPoems();
+            const poem = poems[idx];
+            document.getElementById('poemTitle').innerHTML = poem.title + (poem.isUser ? ' <span class="user-badge">(Your Poem)</span>' : '');
+            document.getElementById('poemAuthor').textContent = poem.author ? `by ${poem.author}` : '';
+            document.getElementById('spokenwordText').innerHTML = poem.text.replace(/\n/g, '<br>');
+            updateFavoriteButton(idx);
+        }
+
+        // --- Startup: Populate select and display first poem ---
+        let currentPoemIdx = 0;
+        populatePoemSelect(currentPoemIdx);
+        displayPoem(currentPoemIdx);
+
+        poemSelect.addEventListener('change', function () {
+            currentPoemIdx = parseInt(this.value);
+            displayPoem(currentPoemIdx);
+            stopSpeech();
+        });
+
+        // --- Favorite functionality ---
+        const favoriteBtn = document.getElementById('favoriteBtn');
+        function updateFavoriteButton(idx) {
+            if (isFavorited(idx)) {
+                favoriteBtn.classList.add('favorited');
+                favoriteBtn.textContent = '⭐ Favorited';
+            } else {
+                favoriteBtn.classList.remove('favorited');
+                favoriteBtn.textContent = '⭐ Favorite';
+            }
+        }
+        favoriteBtn.addEventListener('click', function() {
+            let favs = getFavorites();
+            if (isFavorited(currentPoemIdx)) {
+                favs = favs.filter(idx2 => idx2 !== currentPoemIdx);
+            } else {
+                favs.push(currentPoemIdx);
+            }
+            setFavorites(favs);
+            updateFavoriteButton(currentPoemIdx);
+        });
+
+        // --- Share functionality (Web Share API) ---
+        const shareBtn = document.getElementById('shareBtn');
+        shareBtn.addEventListener('click', function() {
+            const poems = getAllPoems();
+            const poem = poems[currentPoemIdx];
+            if (navigator.share) {
+                navigator.share({
+                    title: poem.title,
+                    text: `${poem.title} by ${poem.author || "Anonymous"}\n\n${poem.text}`,
+                    url: window.location.href
+                });
+            } else {
+                // fallback: copy to clipboard
+                navigator.clipboard.writeText(`${poem.title} by ${poem.author || "Anonymous"}\n\n${poem.text}`);
+                alert('Poem copied to clipboard!');
+            }
+        });
+
+        // --- TTS Controls ---
         let utterance;
         let voices = [];
-
         function populateVoices() {
             voices = window.speechSynthesis.getVoices();
             const voiceSelect = document.getElementById('voiceSelect');
@@ -115,62 +355,74 @@
                 voiceSelect.appendChild(option);
             });
         }
-
         populateVoices();
         if (typeof speechSynthesis !== 'undefined') {
             speechSynthesis.onvoiceschanged = populateVoices;
         }
-
         document.getElementById('rateRange').addEventListener('input', (e) => {
             document.getElementById('rateValue').textContent = e.target.value;
         });
         document.getElementById('pitchRange').addEventListener('input', (e) => {
             document.getElementById('pitchValue').textContent = e.target.value;
         });
-
         function readText() {
             stopSpeech();
-
-            const textHtml = document.getElementById('spokenwordText').innerHTML;
-            const text = textHtml
-                .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<[^>]+>/g, '')
-                .replace(/\s+\n/g, '\n')
-                .trim();
-
-            utterance = new SpeechSynthesisUtterance(text);
-
-            // Get rate and pitch from sliders
+            const poems = getAllPoems();
+            const poem = poems[currentPoemIdx];
+            utterance = new SpeechSynthesisUtterance(poem.text);
             utterance.rate = parseFloat(document.getElementById('rateRange').value);
             utterance.pitch = parseFloat(document.getElementById('pitchRange').value);
-
-            // Get selected voice
             const selectedVoiceIndex = document.getElementById('voiceSelect').value;
             if (voices[selectedVoiceIndex]) {
                 utterance.voice = voices[selectedVoiceIndex];
             }
-
             utterance.lang = utterance.voice ? utterance.voice.lang : 'en-US';
             window.speechSynthesis.speak(utterance);
         }
-
         function pauseSpeech() {
             if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
                 window.speechSynthesis.pause();
             }
         }
-
         function resumeSpeech() {
             if (window.speechSynthesis.paused) {
                 window.speechSynthesis.resume();
             }
         }
-
         function stopSpeech() {
             if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
                 window.speechSynthesis.cancel();
             }
         }
+
+        // --- User Poem Submission ---
+        document.getElementById('writePoemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const title = document.getElementById('userPoemTitle').value.trim();
+            const author = document.getElementById('userPoemAuthor').value.trim();
+            const text = document.getElementById('userPoemText').value.trim();
+            if (!title || !text) {
+                alert('Please provide a title and poem text.');
+                return;
+            }
+            addUserPoem({
+                title,
+                author,
+                text
+            });
+            // Re-render the poem list, select the newly added poem
+            const newIdx = getAllPoems().length - 1;
+            populatePoemSelect(newIdx);
+            currentPoemIdx = newIdx;
+            displayPoem(currentPoemIdx);
+            stopSpeech();
+            this.reset();
+            alert('Your poem has been saved!');
+        });
+
+        // --- Initial user poem badge rendering (after reload) ---
+        // Not needed, handled in displayPoem
+
     </script>
 </body>
 </html>
