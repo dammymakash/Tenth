@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Song</title>
+    <title>Spoken Word App</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background: #f2f2f2;
             margin: 40px;
         }
-        .song-container {
+        .spokenword-container {
             background: #fff;
             padding: 24px 32px;
             border-radius: 10px;
@@ -21,7 +21,7 @@
             color: #2c3e50;
             text-align: center;
         }
-        .lyrics {
+        .spokenword-text {
             margin-top: 24px;
             white-space: pre-line;
             font-size: 1.1em;
@@ -67,10 +67,10 @@
     </style>
 </head>
 <body>
-    <div class="song-container">
-        <h1>Shine On</h1>
+    <div class="spokenword-container">
+        <h1>Spoken Word Piece</h1>
         <div class="tts-controls">
-            <button class="read-aloud-btn" onclick="readLyrics()">🔊 Read Aloud</button>
+            <button class="read-aloud-btn" onclick="readText()">🔊 Read Aloud</button>
             <button class="pause-btn" onclick="pauseSpeech()">⏸️ Pause</button>
             <button class="resume-btn" onclick="resumeSpeech()">▶️ Resume</button>
             <button class="stop-btn" onclick="stopSpeech()">⏹️ Stop</button>
@@ -83,30 +83,20 @@
             <input type="range" id="pitchRange" min="0" max="2" value="1" step="0.1">
             <span id="pitchValue">1</span>
         </div>
-        <div class="lyrics" id="lyrics">
-            Verse 1:
-            Wake up to the sun, shining through my window<br>
-            A brand new day begun, let my worries go<br>
-            Dreams are calling out, in the morning light<br>
-            I’ll chase them down, with all my might<br><br>
+        <div class="spokenword-text" id="spokenwordText">
+            I speak my truth in echoes and in fire,<br>
+            Each word a ripple, chasing something higher.<br>
+            My voice, unchained, dances in the light,<br>
+            Stories set free, taking their flight.<br><br>
 
-            Chorus:
-            Shine on, shine bright<br>
-            Let your heart take flight<br>
-            Through every storm, through every night<br>
-            We’ll shine on, shine bright<br><br>
-
-            Verse 2:
-            Walking down the road, with hope in my eyes<br>
-            Every step I take, another sweet surprise<br>
-            Life is but a song, I’ll sing it loud and free<br>
-            With every note, I’ll just be me<br><br>
-
-            (Repeat Chorus)
+            This is my spoken word, my moment to be heard.<br>
+            Let syllables spark, let meaning be stirred.<br>
+            In the silence, my verses unfold,<br>
+            The world is my canvas, my language is bold.
         </div>
         <!-- Optional: Add your own audio file -->
         <!-- <audio controls>
-            <source src="yoursong.mp3" type="audio/mpeg">
+            <source src="yourpiece.mp3" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio> -->
     </div>
@@ -138,17 +128,17 @@
             document.getElementById('pitchValue').textContent = e.target.value;
         });
 
-        function readLyrics() {
+        function readText() {
             stopSpeech();
 
-            const lyricsHtml = document.getElementById('lyrics').innerHTML;
-            const lyricsText = lyricsHtml
+            const textHtml = document.getElementById('spokenwordText').innerHTML;
+            const text = textHtml
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]+>/g, '')
                 .replace(/\s+\n/g, '\n')
                 .trim();
 
-            utterance = new SpeechSynthesisUtterance(lyricsText);
+            utterance = new SpeechSynthesisUtterance(text);
 
             // Get rate and pitch from sliders
             utterance.rate = parseFloat(document.getElementById('rateRange').value);
