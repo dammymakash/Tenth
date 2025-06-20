@@ -1,93 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>My Lyrics Player</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 2em;
-      text-align: center;
-    }
-    #player-section {
-      margin-bottom: 2em;
-    }
-    #lyrics {
-      margin-top: 2em;
-      font-size: 1.3em;
-      line-height: 1.8;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      background: #fff;
-      padding: 1.5em;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.06);
-    }
-    .highlight {
-      color: #e91e63;
-      font-weight: bold;
-      background: #ffe7f3;
-      border-radius: 4px;
-      padding: 2px 6px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>My Song</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 40px;
+        }
+        .song-container {
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .lyrics {
+            margin-top: 24px;
+            white-space: pre-line;
+            font-size: 1.1em;
+            color: #444;
+        }
+        audio {
+            display: block;
+            margin: 30px auto 0 auto;
+        }
+    </style>
 </head>
 <body>
-  <h1>Lyrics Player</h1>
-  <div id="player-section">
-    <audio id="audio" controls></audio>
-    <br/>
-    <input type="file" id="audioUpload" accept="audio/*">
-  </div>
-  <div id="lyrics"></div>
-  <script>
-    // Example lyrics with timestamps (seconds)
-    const lyrics = [
-      { time: 5, text: "Instrumentals" },
-      { time: 10, text: "second line" },
-      { time: 15, text: "third line" },
-      { time: 25, text: "And finally the last line" }
-    ];
+    <div class="song-container">
+        <h1>Shine On</h1>
+        <div class="lyrics">
+            Verse 1:
+            Wake up to the sun, shining through my window<br>
+            A brand new day begun, let my worries go<br>
+            Dreams are calling out, in the morning light<br>
+            I’ll chase them down, with all my might<br><br>
 
-    // Render lyrics
-    const lyricsDiv = document.getElementById('lyrics');
-    lyricsDiv.innerHTML = lyrics.map((line, i) =>
-      `<span id="line-${i}" class="lyrics-line">${line.text}</span><br>`
-    ).join("");
+            Chorus:
+            Shine on, shine bright<br>
+            Let your heart take flight<br>
+            Through every storm, through every night<br>
+            We’ll shine on, shine bright<br><br>
 
-    // Handle audio upload
-    document.getElementById('audioUpload').addEventListener('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const audio = document.getElementById('audio');
-        audio.src = URL.createObjectURL(file);
-        audio.load();
-      }
-    });
+            Verse 2:
+            Walking down the road, with hope in my eyes<br>
+            Every step I take, another sweet surprise<br>
+            Life is but a song, I’ll sing it loud and free<br>
+            With every note, I’ll just be me<br><br>
 
-    // Highlight lyrics with audio time
-    const audio = document.getElementById('audio');
-    let currentLine = -1;
-    audio.ontimeupdate = function() {
-      const time = audio.currentTime;
-      for (let i = 0; i < lyrics.length; i++) {
-        if (time >= lyrics[i].time && (i === lyrics.length - 1 || time < lyrics[i + 1].time)) {
-          if (currentLine !== i) {
-            if (currentLine >= 0) document.getElementById('line-' + currentLine).classList.remove('highlight');
-            document.getElementById('line-' + i).classList.add('highlight');
-            currentLine = i;
-          }
-          break; 
-        }
-      }
-    };
-    audio.onended = function() {
-      if (currentLine >= 0) document.getElementById('line-' + currentLine).classList.remove('highlight');
-      currentLine = -1;
-    };
-  </script>
+            (Repeat Chorus)
+        </div>
+        <!-- Optional: Add your own audio file -->
+        <!-- <audio controls>
+            <source src="yoursong.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio> -->
+    </div>
 </body>
 </html>
