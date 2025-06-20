@@ -27,6 +27,39 @@
             font-size: 1.1em;
             color: #444;
         }
+        .tts-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .tts-controls label {
+            margin-right: 5px;
+        }
+        .tts-controls select,
+        .tts-controls input[type="range"] {
+            margin-right: 10px;
+        }
+        .read-aloud-btn,
+        .pause-btn,
+        .resume-btn,
+        .stop-btn {
+            padding: 8px 18px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #2c3e50;
+            color: #fff;
+            transition: background 0.2s;
+        }
+        .read-aloud-btn:hover,
+        .pause-btn:hover,
+        .resume-btn:hover,
+        .stop-btn:hover {
+            background: #34495e;
+        }
         audio {
             display: block;
             margin: 30px auto 0 auto;
@@ -36,7 +69,21 @@
 <body>
     <div class="song-container">
         <h1>Shine On</h1>
-        <div class="lyrics">
+        <div class="tts-controls">
+            <button class="read-aloud-btn" onclick="readLyrics()">🔊 Read Aloud</button>
+            <button class="pause-btn" onclick="pauseSpeech()">⏸️ Pause</button>
+            <button class="resume-btn" onclick="resumeSpeech()">▶️ Resume</button>
+            <button class="stop-btn" onclick="stopSpeech()">⏹️ Stop</button>
+            <label for="voiceSelect">Voice:</label>
+            <select id="voiceSelect"></select>
+            <label for="rateRange">Rate:</label>
+            <input type="range" id="rateRange" min="0.5" max="2" value="1" step="0.1">
+            <span id="rateValue">1</span>
+            <label for="pitchRange">Pitch:</label>
+            <input type="range" id="pitchRange" min="0" max="2" value="1" step="0.1">
+            <span id="pitchValue">1</span>
+        </div>
+        <div class="lyrics" id="lyrics">
             Verse 1:
             Wake up to the sun, shining through my window<br>
             A brand new day begun, let my worries go<br>
@@ -63,5 +110,77 @@
             Your browser does not support the audio element.
         </audio> -->
     </div>
+    <script>
+        let utterance;
+        let voices = [];
+
+        function populateVoices() {
+            voices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            voices.forEach((voice, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `${voice.name} (${voice.lang})${voice.default ? ' [default]' : ''}`;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        populateVoices();
+        if (typeof speechSynthesis !== 'undefined') {
+            speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+        document.getElementById('rateRange').addEventListener('input', (e) => {
+            document.getElementById('rateValue').textContent = e.target.value;
+        });
+        document.getElementById('pitchRange').addEventListener('input', (e) => {
+            document.getElementById('pitchValue').textContent = e.target.value;
+        });
+
+        function readLyrics() {
+            stopSpeech();
+
+            const lyricsHtml = document.getElementById('lyrics').innerHTML;
+            const lyricsText = lyricsHtml
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s+\n/g, '\n')
+                .trim();
+
+            utterance = new SpeechSynthesisUtterance(lyricsText);
+
+            // Get rate and pitch from sliders
+            utterance.rate = parseFloat(document.getElementById('rateRange').value);
+            utterance.pitch = parseFloat(document.getElementById('pitchRange').value);
+
+            // Get selected voice
+            const selectedVoiceIndex = document.getElementById('voiceSelect').value;
+            if (voices[selectedVoiceIndex]) {
+                utterance.voice = voices[selectedVoiceIndex];
+            }
+
+            utterance.lang = utterance.voice ? utterance.voice.lang : 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function pauseSpeech() {
+            if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                window.speechSynthesis.pause();
+            }
+        }
+
+        function resumeSpeech() {
+            if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+            }
+        }
+
+        function stopSpeech() {
+            if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+                window.speechSynthesis.cancel();
+            }
+        }
+    </script>
 </body>
 </html>
